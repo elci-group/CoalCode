@@ -3662,6 +3662,24 @@ describe("ProviderTransform.variants", () => {
         high: { reasoningEffort: "high" },
       })
     })
+
+    test("groq does not expose unsupported none reasoning effort", () => {
+      const result = ProviderTransform.variants({
+        id: "groq/openai/gpt-oss-120b",
+        providerID: "groq",
+        api: {
+          id: "openai/gpt-oss-120b",
+          url: "https://api.groq.com/openai/v1",
+          npm: "@ai-sdk/groq",
+        },
+        capabilities: { reasoning: true },
+      } as any)
+      expect(result).toEqual({
+        low: { reasoningEffort: "low" },
+        medium: { reasoningEffort: "medium" },
+        high: { reasoningEffort: "high" },
+      })
+    })
   })
 })
 

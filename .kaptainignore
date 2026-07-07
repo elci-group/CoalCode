@@ -1,0 +1,16 @@
+# Common
+.git
+.kaptaind
+.DS_Store
+*.swp
+*.swo
+
+# Node
+node_modules
+.next
+dist
+build
+.turbo
+.vercel
+.output
+*.lock

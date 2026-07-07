@@ -30,6 +30,8 @@ import { ProviderV2 } from "@opencode-ai/core/provider"
 import * as DateTime from "effect/DateTime"
 import { RuntimeFlags } from "@/effect/runtime-flags"
 import { Usage, type LLMEvent } from "@opencode-ai/llm"
+import { InstanceState } from "@/effect/instance-state"
+import { CoalIntegration } from "@/coal/integration"
 
 const DOOM_LOOP_THRESHOLD = 3
 const log = Log.create({ service: "session.processor" })
@@ -105,6 +107,7 @@ export const layer = Layer.effect(
     const database = yield* Database.Service
 
     const create = Effect.fn("SessionProcessor.create")(function* (input: Input) {
+      const instance = yield* InstanceState.context
       // Pre-capture snapshot before the LLM stream starts. The AI SDK
       // may execute tools internally before emitting start-step events,
       // so capturing inside the event handler can be too late.
@@ -129,6 +132,10 @@ export const layer = Layer.effect(
           providerID: input.model.providerID,
           aborted,
         })
+
+      const recordHot = Effect.fnUntraced(function* (event: Parameters<typeof CoalIntegration.hotEvent>[1]) {
+        yield* Effect.promise(() => CoalIntegration.hotEvent(instance.worktree, event)).pipe(Effect.ignore)
+      })
 
       const settleToolCall = Effect.fn("SessionProcessor.settleToolCall")(function* (toolCallID: string) {
         const done = ctx.toolcalls[toolCallID]?.done
@@ -305,6 +312,12 @@ export const layer = Layer.effect(
       const handleEvent = Effect.fnUntraced(function* (value: StreamEvent) {
         switch (value.type) {
           case "reasoning-start":
+            yield* recordHot({
+              type: "reasoning-start",
+              sessionID: ctx.sessionID,
+              messageID: ctx.assistantMessage.id,
+              metadata: { reasoningID: value.id },
+            })
             if (value.id in ctx.reasoningMap) return
             // TODO(v2): Temporary dual-write while migrating session messages to v2 events.
             if (flags.experimentalEventSystem) {
@@ -380,6 +393,14 @@ export const layer = Layer.effect(
             }
             const toolCall = yield* ensureToolCall(value)
             const input = isRecord(value.input) ? value.input : { value: value.input }
+            yield* recordHot({
+              type: "tool-call",
+              sessionID: ctx.sessionID,
+              messageID: ctx.assistantMessage.id,
+              callID: value.id,
+              tool: value.name,
+              metadata: { input },
+            })
             if (!toolCall.call.inputEnded) {
               // TODO(v2): Temporary dual-write while migrating session messages to v2 events.
               if (flags.experimentalEventSystem) {
@@ -499,6 +520,18 @@ export const layer = Layer.effect(
                 timestamp: DateTime.makeUnsafe(Date.now()),
               })
             }
+            yield* recordHot({
+              type: "tool-result",
+              sessionID: ctx.sessionID,
+              messageID: ctx.assistantMessage.id,
+              callID: value.id,
+              tool: value.name,
+              metadata: {
+                outputLength: output.output.length,
+                attachmentCount: output.attachments?.length ?? 0,
+                providerExecuted: value.providerExecuted === true || toolCall?.part.metadata?.providerExecuted === true,
+              },
+            })
             yield* completeToolCall(value.id, output)
             return
           }
@@ -520,6 +553,13 @@ export const layer = Layer.effect(
                 timestamp: DateTime.makeUnsafe(Date.now()),
               })
             }
+            yield* recordHot({
+              type: "tool-error",
+              sessionID: ctx.sessionID,
+              messageID: ctx.assistantMessage.id,
+              callID: value.id,
+              metadata: { message: value.message },
+            })
             yield* failToolCall(value.id, value.error ?? new Error(value.message))
             return
           }
@@ -528,6 +568,15 @@ export const layer = Layer.effect(
             throw new Error(value.message)
 
           case "step-start":
+            yield* recordHot({
+              type: "step-start",
+              sessionID: ctx.sessionID,
+              messageID: ctx.assistantMessage.id,
+              metadata: {
+                agent: input.assistantMessage.agent,
+                model: `${ctx.model.providerID}/${ctx.model.id}`,
+              },
+            })
             if (!ctx.snapshot) ctx.snapshot = yield* snapshot.track()
             if (!ctx.assistantMessage.summary) {
               // TODO(v2): Temporary dual-write while migrating session messages to v2 events.
@@ -561,6 +610,16 @@ export const layer = Layer.effect(
               model: ctx.model,
               usage: value.usage ?? new Usage({}),
               metadata: value.providerMetadata,
+            })
+            yield* recordHot({
+              type: "step-finish",
+              sessionID: ctx.sessionID,
+              messageID: ctx.assistantMessage.id,
+              reason: value.reason,
+              metadata: {
+                cost: usage.cost,
+                tokens: usage.tokens,
+              },
             })
             if (!ctx.assistantMessage.summary) {
               // TODO(v2): Temporary dual-write while migrating session messages to v2 events.

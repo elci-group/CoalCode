@@ -1,6 +1,6 @@
 export const logo = {
-  left: ["                   ", "█▀▀█ █▀▀█ █▀▀█ █▀▀▄", "█__█ █__█ █^^^ █__█", "▀▀▀▀ █▀▀▀ ▀▀▀▀ ▀~~▀"],
-  right: ["             ▄     ", "█▀▀▀ █▀▀█ █▀▀█ █▀▀█", "█___ █__█ █__█ █^^^", "▀▀▀▀ ▀▀▀▀ ▀▀▀▀ ▀▀▀▀"],
+  left: ["                    ", "  CCC   OOO   AAA  L    ", " C     O   O A   A L    ", "  CCC   OOO  A   A LLLL "],
+  right: ["                    ", "  CCC   OOO  DDD  EEEE", " C     O   O D  D EEE ", "  CCC   OOO  DDD  EEEE"],
 }
 
 export const go = {

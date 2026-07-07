@@ -1,3 +1,5 @@
+> CoalCode fork note: this checkout is a COAL-powered fork of OpenCode with Cold Coal prompt context and Hot Coal runtime event capture. It is not built by the OpenCode team and is not affiliated with them. See [COALCODE.md](./COALCODE.md) for the local hot/cold integration contract.
+
 <p align="center">
   <a href="https://opencode.ai">
     <picture>

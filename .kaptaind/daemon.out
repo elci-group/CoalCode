@@ -1,0 +1,13 @@
+2026-07-07T21:30:00.240030Z  INFO kaptaind: Starting kaptaind
+2026-07-07T21:30:00.240069Z  INFO kaptaind: Watching repository at: /home/sal/CoalCode/
+2026-07-07T21:30:00.260883Z  INFO kaptaind::daemon::runtime: capability network_push is disabled
+2026-07-07T21:30:00.260903Z  INFO kaptaind::daemon::runtime: capability network_webhooks is disabled
+2026-07-07T21:30:00.260906Z  INFO kaptaind::daemon::runtime: capability network_inference is disabled
+2026-07-07T21:30:00.260909Z  INFO kaptaind::daemon::runtime: capability bundle_scoring is disabled
+2026-07-07T21:30:00.260911Z  INFO kaptaind::daemon::runtime: capability external_plugins is disabled
+2026-07-07T21:30:00.261753Z  INFO kaptaind::daemon::health: health server listening addr=127.0.0.1:9090
+2026-07-07T21:30:10.591017Z  INFO kaptaind::angler::git_hooks: Installed 7 git hooks
+2026-07-07T21:30:10.591271Z  INFO kaptaind::angler: Git hooks installed successfully
+2026-07-07T21:30:10.591342Z  INFO kaptaind::daemon::scheduler: Angler system initialized
+2026-07-07T21:33:47.645811Z  INFO kaptaind::daemon::scheduler: cluster window expired by timeout cluster_id=4cb76c74-014d-451a-a6d2-ac1c917d933b
+2026-07-07T21:33:47.791854Z  INFO kaptaind::daemon::scheduler: Token usage and cost tracking input_tokens=2844 output_tokens=35 marginal_cost=0.0014745 aggregate_cost=0.0014745

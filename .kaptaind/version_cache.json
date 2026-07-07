@@ -1,0 +1,9 @@
+{
+  "entries": {
+    "typescript": {
+      "version": "catalog:",
+      "detected_from": "package.json (dependencies.typescript)",
+      "cached_at": 1783459740
+    }
+  }
+}
